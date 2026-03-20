@@ -1,0 +1,66 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <title>My Confession</title>
+</head>
+<body>
+
+<h2>Write Confession</h2>
+
+<textarea id="text" rows="5" cols="40"></textarea><br><br>
+<button onclick="saveData()">Save</button>
+
+<hr>
+
+<h2>Your Confessions</h2>
+<div id="data"></div>
+
+<!-- Firebase -->
+<script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-app.js"></script>
+<script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-database.js"></script>
+
+<script>
+const firebaseConfig = {
+  apiKey: "AIzaSyDf6ypJBB8UaHpPV79RUbyBH9BfuxJ73Aw",
+  authDomain: "failstory-2577f.firebaseapp.com",
+  databaseURL: "https://failstory-a1191-default-rtdb.firebaseio.com/",
+  projectId: "failstory-2577f",
+  storageBucket: "failstory-2577f.firebasestorage.app",
+  messagingSenderId: "669045753404",
+  appId: "1:669045753404:web:01089f4d3fed9dd3992539"
+};
+
+firebase.initializeApp(firebaseConfig);
+const db = firebase.database();
+
+function saveData() {
+  let text = document.getElementById("text").value;
+  let time = new Date().toLocaleString();
+
+  db.ref("confessions").push({
+    text: text,
+    time: time
+  });
+
+  location.reload();
+}
+
+function loadData() {
+  db.ref("confessions").on("value", snapshot => {
+    let data = snapshot.val();
+    let output = "";
+
+    for (let key in data) {
+      output += `<p><b>${data[key].time}</b></p>`;
+      output += `<p>${data[key].text}</p><hr>`;
+    }
+
+    document.getElementById("data").innerHTML = output;
+  });
+}
+
+loadData();
+</script>
+
+</body>
+</html>
