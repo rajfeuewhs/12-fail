@@ -5,36 +5,68 @@
 
   <style>
     body {
+      margin: 0;
       font-family: Arial;
-      background: #111;
+      background: linear-gradient(135deg, #1a1a1a, #000);
       color: white;
+    }
+
+    .container {
+      max-width: 500px;
+      margin: auto;
       padding: 20px;
+    }
+
+    h2 {
+      text-align: center;
     }
 
     textarea {
       width: 100%;
-      padding: 10px;
+      padding: 12px;
+      border-radius: 10px;
+      border: none;
+      outline: none;
+      background: #222;
+      color: white;
     }
 
     button {
-      padding: 10px;
-      background: orange;
+      margin-top: 10px;
+      width: 100%;
+      padding: 12px;
       border: none;
+      border-radius: 10px;
+      background: orange;
+      font-weight: bold;
       cursor: pointer;
     }
 
     .timeline {
-      border-left: 3px solid white;
+      border-left: 3px solid #555;
       margin-top: 30px;
       padding-left: 20px;
+      position: relative;
     }
 
     .box {
-      background: #222;
-      padding: 10px;
+      background: #1e1e1e;
+      padding: 12px;
       margin: 20px 0;
-      border-radius: 8px;
+      border-radius: 10px;
       position: relative;
+    }
+
+    /* 🔴 DOT */
+    .box::before {
+      content: "";
+      width: 12px;
+      height: 12px;
+      background: red;
+      border-radius: 50%;
+      position: absolute;
+      left: -28px;
+      top: 15px;
     }
 
     .time {
@@ -42,23 +74,81 @@
       color: #aaa;
       margin-top: 5px;
     }
+
+    .delete {
+      margin-top: 8px;
+      background: red;
+      padding: 5px;
+      border-radius: 5px;
+      font-size: 12px;
+      cursor: pointer;
+    }
+
+    /* 🔒 PASSWORD SCREEN */
+    #lock {
+      position: fixed;
+      width: 100%;
+      height: 100%;
+      background: black;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      flex-direction: column;
+    }
+
+    input {
+      padding: 10px;
+      border-radius: 10px;
+      border: none;
+      margin-top: 10px;
+    }
+
+    /* 📱 MOBILE */
+    @media(max-width:600px){
+      .container {
+        padding: 10px;
+      }
+    }
   </style>
 </head>
 
 <body>
 
-<h2>Write Confession</h2>
+<!-- 🔒 LOCK SCREEN -->
+<div id="lock">
+  <h2>Enter Password</h2>
+  <input type="password" id="pass">
+  <button onclick="check()">Enter</button>
+</div>
 
-<textarea id="text" rows="4"></textarea><br><br>
-<button onclick="saveData()">Save</button>
+<div class="container" id="main" style="display:none;">
 
-<div class="timeline" id="data"></div>
+  <h2>My Confession</h2>
+
+  <textarea id="text" rows="4" placeholder="Write your thoughts..."></textarea>
+  <button onclick="saveData()">Save</button>
+
+  <div class="timeline" id="data"></div>
+
+</div>
 
 <!-- Firebase -->
 <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-app.js"></script>
 <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-database.js"></script>
 
 <script>
+const PASSWORD = "1234"; // change kar lena
+
+function check(){
+  let p = document.getElementById("pass").value;
+  if(p === PASSWORD){
+    document.getElementById("lock").style.display="none";
+    document.getElementById("main").style.display="block";
+  } else {
+    alert("Wrong password");
+  }
+}
+
 const firebaseConfig = {
   apiKey: "AIzaSyDf6ypJBB8UaHpPV79RUbyBH9BfuxJ73Aw",
   authDomain: "failstory-2577f.firebaseapp.com",
@@ -77,6 +167,10 @@ function saveData() {
   location.reload();
 }
 
+function deleteData(id){
+  db.ref("confessions/"+id).remove();
+}
+
 function loadData() {
   db.ref("confessions").on("value", snapshot => {
     let data = snapshot.val();
@@ -87,6 +181,7 @@ function loadData() {
         <div class="box">
           <div>${data[key].text}</div>
           <div class="time">${data[key].time}</div>
+          <div class="delete" onclick="deleteData('${key}')">Delete</div>
         </div>
       `;
     }
