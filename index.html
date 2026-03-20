@@ -1,94 +1,104 @@
 <!DOCTYPE html>
 <html>
 <head>
-<title>Pro Confession</title>
+  <title>My Confession</title>
 
-<style>
-body {
-  margin:0;
-  font-family: Arial;
-  background:#000;
-  color:white;
-}
+  <style>
+    body {
+      margin:0;
+      font-family: Arial;
+      background:#000;
+      color:white;
+    }
 
-.container{
-  max-width:500px;
-  margin:auto;
-  padding:15px;
-}
+    .container{
+      max-width:500px;
+      margin:auto;
+      padding:15px;
+    }
 
-.card{
-  background:#1a1a1a;
-  padding:12px;
-  border-radius:15px;
-  margin-top:15px;
-  cursor:pointer;
-  transition:0.3s;
-}
+    h2{text-align:center;}
 
-.card:hover{ background:#222; }
+    .card{
+      background:#1a1a1a;
+      padding:12px;
+      border-radius:15px;
+      margin-top:15px;
+      cursor:pointer;
+    }
 
-.full{
-  display:none;
-  margin-top:10px;
-}
+    .full{
+      display:none;
+      margin-top:10px;
+    }
 
-.fab{
-  position:fixed;
-  bottom:20px;
-  right:20px;
-  background:#3b82f6;
-  width:55px;
-  height:55px;
-  border-radius:50%;
-  font-size:30px;
-  display:flex;
-  justify-content:center;
-  align-items:center;
-}
+    .time{
+      font-size:12px;
+      color:#aaa;
+    }
 
-#popup{
-  display:none;
-  position:fixed;
-  bottom:0;
-  width:100%;
-  background:#000;
-  padding:15px;
-}
+    .fab{
+      position:fixed;
+      bottom:20px;
+      right:20px;
+      background:#3b82f6;
+      width:55px;
+      height:55px;
+      border-radius:50%;
+      font-size:30px;
+      display:flex;
+      justify-content:center;
+      align-items:center;
+    }
 
-input, textarea{
-  width:100%;
-  padding:10px;
-  margin-top:10px;
-  border-radius:10px;
-  border:none;
-}
+    #popup{
+      display:none;
+      position:fixed;
+      bottom:0;
+      width:100%;
+      background:#000;
+      padding:15px;
+    }
 
-button{
-  width:100%;
-  padding:10px;
-  margin-top:10px;
-  border:none;
-  border-radius:10px;
-  background:#3b82f6;
-  color:white;
-}
+    textarea{
+      width:100%;
+      padding:10px;
+      border-radius:10px;
+      border:none;
+      background:#111;
+      color:white;
+    }
 
-</style>
+    button{
+      width:100%;
+      padding:10px;
+      margin-top:10px;
+      border:none;
+      border-radius:10px;
+      background:#3b82f6;
+      color:white;
+    }
+
+    #login{
+      display:flex;
+      height:100vh;
+      justify-content:center;
+      align-items:center;
+      flex-direction:column;
+    }
+
+  </style>
 </head>
 
 <body>
 
 <!-- LOGIN -->
 <div id="login">
-  <div class="container">
-    <h2>Login</h2>
-    <input id="email" placeholder="Email">
-    <input id="password" type="password" placeholder="Password">
-    <button onclick="login()">Login</button>
-  </div>
+  <h2>My Confession</h2>
+  <button onclick="googleLogin()">Login with Google</button>
 </div>
 
+<!-- APP -->
 <div id="app" style="display:none;">
   <div class="container">
     <h2>My Confessions</h2>
@@ -98,9 +108,7 @@ button{
   <div class="fab" onclick="openPopup()">+</div>
 
   <div id="popup">
-    <textarea id="text"></textarea>
-    <input type="file" id="img">
-    <button onclick="startRecording()">🎤 Record</button>
+    <textarea id="text" placeholder="Write something..."></textarea>
     <button onclick="saveData()">Save</button>
   </div>
 </div>
@@ -109,57 +117,39 @@ button{
 <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-app.js"></script>
 <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-auth.js"></script>
 <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-database.js"></script>
-<script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-storage.js"></script>
 
 <script>
 const firebaseConfig = {
-  apiKey: "AIzaSyDf6yp...",
+  apiKey: "AIzaSyDf6ypJBB8UaHpPV79RUbyBH9BfuxJ73Aw",
   authDomain: "failstory-2577f.firebaseapp.com",
   databaseURL: "https://failstory-a1191-default-rtdb.firebaseio.com/",
-  projectId: "failstory-2577f",
-  storageBucket: "failstory-2577f.appspot.com"
+  projectId: "failstory-2577f"
 };
 
 firebase.initializeApp(firebaseConfig);
 
 const auth = firebase.auth();
 const db = firebase.database();
-const storage = firebase.storage();
 
-function login(){
-  let e = email.value;
-  let p = password.value;
+// 🔐 GOOGLE LOGIN
+function googleLogin(){
+  let provider = new firebase.auth.GoogleAuthProvider();
 
-  auth.signInWithEmailAndPassword(e,p)
+  auth.signInWithPopup(provider)
   .then(()=>{
     login.style.display="none";
     app.style.display="block";
     loadData();
   })
-  .catch(()=>alert("error"));
+  .catch(()=>alert("Login error"));
 }
 
+// ➕ popup
 function openPopup(){
   popup.style.display="block";
 }
 
-let mediaRecorder;
-let audioBlob;
-
-function startRecording(){
-  navigator.mediaDevices.getUserMedia({audio:true})
-  .then(stream=>{
-    mediaRecorder = new MediaRecorder(stream);
-    mediaRecorder.start();
-
-    mediaRecorder.ondataavailable = e=>{
-      audioBlob = e.data;
-    }
-
-    setTimeout(()=>mediaRecorder.stop(),3000);
-  });
-}
-
+// 💾 save
 function saveData(){
   let text = document.getElementById("text").value;
   let time = new Date().toLocaleString();
@@ -168,11 +158,18 @@ function saveData(){
   location.reload();
 }
 
+// 📂 toggle
 function toggle(id){
   let el = document.getElementById(id);
   el.style.display = el.style.display=="none"?"block":"none";
 }
 
+// 🗑️ delete
+function deleteData(id){
+  db.ref("confessions/"+id).remove();
+}
+
+// 📦 load
 function loadData(){
   db.ref("confessions").on("value",snap=>{
     let data = snap.val();
@@ -184,8 +181,11 @@ function loadData(){
       out += `
       <div class="card" onclick="toggle('${k}')">
         ${short}...
+        <div class="time">${data[k].time}</div>
+
         <div class="full" id="${k}">
           <p>${data[k].text}</p>
+          <button onclick="deleteData('${k}')">Delete</button>
         </div>
       </div>`;
     }
