@@ -7,18 +7,19 @@
     body {
       margin: 0;
       font-family: Arial;
-      background: linear-gradient(135deg, #1a1a1a, #000);
+      background: #000;
       color: white;
     }
 
     .container {
       max-width: 500px;
       margin: auto;
-      padding: 20px;
+      padding: 15px;
     }
 
     h2 {
       text-align: center;
+      color: #ccc;
     }
 
     textarea {
@@ -26,110 +27,108 @@
       padding: 12px;
       border-radius: 10px;
       border: none;
-      outline: none;
-      background: #222;
+      background: #111;
       color: white;
     }
 
     button {
-      margin-top: 10px;
       width: 100%;
       padding: 12px;
+      margin-top: 10px;
       border: none;
       border-radius: 10px;
-      background: orange;
+      background: #3b82f6;
+      color: white;
       font-weight: bold;
-      cursor: pointer;
     }
 
-    .timeline {
-      border-left: 3px solid #555;
-      margin-top: 30px;
-      padding-left: 20px;
-      position: relative;
-    }
-
-    .box {
-      background: #1e1e1e;
+    /* 📦 SMALL CARD */
+    .card {
+      background: #1a1a1a;
       padding: 12px;
-      margin: 20px 0;
-      border-radius: 10px;
-      position: relative;
+      border-radius: 15px;
+      margin-top: 15px;
+      cursor: pointer;
+      transition: 0.3s;
     }
 
-    /* 🔴 DOT */
-    .box::before {
-      content: "";
-      width: 12px;
-      height: 12px;
-      background: red;
-      border-radius: 50%;
-      position: absolute;
-      left: -28px;
-      top: 15px;
+    .card:hover {
+      background: #222;
     }
 
     .time {
       font-size: 12px;
-      color: #aaa;
+      color: #888;
       margin-top: 5px;
     }
 
-    .delete {
-      margin-top: 8px;
-      background: red;
-      padding: 5px;
-      border-radius: 5px;
-      font-size: 12px;
-      cursor: pointer;
+    /* 📂 EXPANDED VIEW */
+    .full {
+      display: none;
+      background: #111;
+      padding: 15px;
+      border-radius: 15px;
+      margin-top: 10px;
+      animation: fade 0.3s ease;
     }
 
-    /* 🔒 PASSWORD SCREEN */
-    #lock {
+    @keyframes fade {
+      from {opacity: 0;}
+      to {opacity: 1;}
+    }
+
+    .delete {
+      margin-top: 10px;
+      color: red;
+      font-size: 12px;
+    }
+
+    /* ➕ FLOAT BUTTON */
+    .fab {
       position: fixed;
-      width: 100%;
-      height: 100%;
-      background: black;
+      bottom: 20px;
+      right: 20px;
+      background: #3b82f6;
+      width: 55px;
+      height: 55px;
+      border-radius: 50%;
+      font-size: 30px;
       display: flex;
       justify-content: center;
       align-items: center;
-      flex-direction: column;
+      cursor: pointer;
     }
 
-    input {
-      padding: 10px;
-      border-radius: 10px;
-      border: none;
-      margin-top: 10px;
-    }
-
-    /* 📱 MOBILE */
-    @media(max-width:600px){
-      .container {
-        padding: 10px;
-      }
+    /* 📝 INPUT POPUP */
+    #popup {
+      display: none;
+      position: fixed;
+      bottom: 0;
+      width: 100%;
+      background: #000;
+      padding: 15px;
+      border-top: 2px solid #333;
     }
   </style>
 </head>
 
 <body>
 
-<!-- 🔒 LOCK SCREEN -->
-<div id="lock">
-  <h2>Enter Password</h2>
-  <input type="password" id="pass">
-  <button onclick="check()">Enter</button>
+<div class="container">
+
+  <h2>My Confessions</h2>
+
+  <div id="data"></div>
+
 </div>
 
-<div class="container" id="main" style="display:none;">
+<!-- ➕ BUTTON -->
+<div class="fab" onclick="openPopup()">+</div>
 
-  <h2>My Confession</h2>
-
-  <textarea id="text" rows="4" placeholder="Write your thoughts..."></textarea>
+<!-- INPUT POPUP -->
+<div id="popup">
+  <textarea id="text" placeholder="Write your thoughts..."></textarea>
   <button onclick="saveData()">Save</button>
-
-  <div class="timeline" id="data"></div>
-
 </div>
 
 <!-- Firebase -->
@@ -137,18 +136,6 @@
 <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-database.js"></script>
 
 <script>
-const PASSWORD = "1234"; // change kar lena
-
-function check(){
-  let p = document.getElementById("pass").value;
-  if(p === PASSWORD){
-    document.getElementById("lock").style.display="none";
-    document.getElementById("main").style.display="block";
-  } else {
-    alert("Wrong password");
-  }
-}
-
 const firebaseConfig = {
   apiKey: "AIzaSyDf6ypJBB8UaHpPV79RUbyBH9BfuxJ73Aw",
   authDomain: "failstory-2577f.firebaseapp.com",
@@ -159,12 +146,21 @@ const firebaseConfig = {
 firebase.initializeApp(firebaseConfig);
 const db = firebase.database();
 
+function openPopup(){
+  document.getElementById("popup").style.display="block";
+}
+
 function saveData() {
   let text = document.getElementById("text").value;
   let time = new Date().toLocaleString();
 
   db.ref("confessions").push({ text, time });
   location.reload();
+}
+
+function toggle(id){
+  let el = document.getElementById(id);
+  el.style.display = el.style.display === "none" ? "block" : "none";
 }
 
 function deleteData(id){
@@ -177,11 +173,17 @@ function loadData() {
     let output = "";
 
     for (let key in data) {
+      let short = data[key].text.substring(0, 40);
+
       output += `
-        <div class="box">
-          <div>${data[key].text}</div>
+        <div class="card" onclick="toggle('${key}')">
+          ${short}...
           <div class="time">${data[key].time}</div>
-          <div class="delete" onclick="deleteData('${key}')">Delete</div>
+
+          <div class="full" id="${key}">
+            <p>${data[key].text}</p>
+            <div class="delete" onclick="deleteData('${key}')">Delete</div>
+          </div>
         </div>
       `;
     }
