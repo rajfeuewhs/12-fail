@@ -4,12 +4,48 @@
   <title>My Confession</title>
 
   <style>
-    body {
+    body{
       margin:0;
       font-family: Arial;
-      background:#000;
+      background:#0f172a;
       color:white;
     }
+
+    /* 🔐 LOGIN PAGE */
+    #login{
+      display:flex;
+      justify-content:center;
+      align-items:center;
+      height:100vh;
+    }
+
+    .login-box{
+      background:#111827;
+      padding:30px;
+      border-radius:20px;
+      width:300px;
+      text-align:center;
+      box-shadow:0 0 20px #22c55e;
+      animation: glow 2s infinite alternate;
+    }
+
+    @keyframes glow{
+      from{ box-shadow:0 0 10px #22c55e; }
+      to{ box-shadow:0 0 30px #22c55e; }
+    }
+
+    .google{
+      background:#3b82f6;
+      border:none;
+      padding:10px;
+      border-radius:10px;
+      width:100%;
+      color:white;
+      cursor:pointer;
+    }
+
+    /* 📱 APP UI */
+    #app{ display:none; }
 
     .container{
       max-width:500px;
@@ -25,7 +61,10 @@
       border-radius:15px;
       margin-top:15px;
       cursor:pointer;
+      transition:0.3s;
     }
+
+    .card:hover{ background:#222; }
 
     .full{
       display:none;
@@ -41,7 +80,7 @@
       position:fixed;
       bottom:20px;
       right:20px;
-      background:#3b82f6;
+      background:#22c55e;
       width:55px;
       height:55px;
       border-radius:50%;
@@ -49,6 +88,7 @@
       display:flex;
       justify-content:center;
       align-items:center;
+      cursor:pointer;
     }
 
     #popup{
@@ -75,16 +115,8 @@
       margin-top:10px;
       border:none;
       border-radius:10px;
-      background:#3b82f6;
+      background:#22c55e;
       color:white;
-    }
-
-    #login{
-      display:flex;
-      height:100vh;
-      justify-content:center;
-      align-items:center;
-      flex-direction:column;
     }
 
   </style>
@@ -92,14 +124,16 @@
 
 <body>
 
-<!-- LOGIN -->
+<!-- 🔐 LOGIN -->
 <div id="login">
-  <h2>My Confession</h2>
-  <button onclick="googleLogin()">Login with Google</button>
+  <div class="login-box">
+    <h2>Welcome Back</h2>
+    <button class="google" onclick="googleLogin()">Login with Google</button>
+  </div>
 </div>
 
-<!-- APP -->
-<div id="app" style="display:none;">
+<!-- 📱 APP -->
+<div id="app">
   <div class="container">
     <h2>My Confessions</h2>
     <div id="data"></div>
@@ -108,7 +142,7 @@
   <div class="fab" onclick="openPopup()">+</div>
 
   <div id="popup">
-    <textarea id="text" placeholder="Write something..."></textarea>
+    <textarea id="text" placeholder="Write your thoughts..."></textarea>
     <button onclick="saveData()">Save</button>
   </div>
 </div>
@@ -131,25 +165,27 @@ firebase.initializeApp(firebaseConfig);
 const auth = firebase.auth();
 const db = firebase.database();
 
-// 🔐 GOOGLE LOGIN
+/* 🔐 GOOGLE LOGIN */
 function googleLogin(){
   let provider = new firebase.auth.GoogleAuthProvider();
 
   auth.signInWithPopup(provider)
   .then(()=>{
-    login.style.display="none";
-    app.style.display="block";
+    document.getElementById("login").style.display="none";
+    document.getElementById("app").style.display="block";
     loadData();
   })
-  .catch(()=>alert("Login error"));
+  .catch((e)=>{
+    alert("Login error: "+e.message);
+  });
 }
 
-// ➕ popup
+/* ➕ POPUP */
 function openPopup(){
-  popup.style.display="block";
+  document.getElementById("popup").style.display="block";
 }
 
-// 💾 save
+/* 💾 SAVE */
 function saveData(){
   let text = document.getElementById("text").value;
   let time = new Date().toLocaleString();
@@ -158,18 +194,18 @@ function saveData(){
   location.reload();
 }
 
-// 📂 toggle
+/* 📂 TOGGLE */
 function toggle(id){
   let el = document.getElementById(id);
   el.style.display = el.style.display=="none"?"block":"none";
 }
 
-// 🗑️ delete
+/* 🗑️ DELETE */
 function deleteData(id){
   db.ref("confessions/"+id).remove();
 }
 
-// 📦 load
+/* 📦 LOAD */
 function loadData(){
   db.ref("confessions").on("value",snap=>{
     let data = snap.val();
@@ -193,6 +229,15 @@ function loadData(){
     document.getElementById("data").innerHTML=out;
   });
 }
+
+/* 🔥 AUTO LOGIN */
+auth.onAuthStateChanged(user=>{
+  if(user){
+    document.getElementById("login").style.display="none";
+    document.getElementById("app").style.display="block";
+    loadData();
+  }
+});
 </script>
 
 </body>
