@@ -3,12 +3,11 @@
 <head>
   <title>Confession App</title>
 
-  <!-- Firebase -->
   <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-app.js"></script>
   <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-database.js"></script>
 
   <style>
-    body { font-family: Arial; margin: 0; background: #f2f2f2; }
+    body { font-family: Arial; background: #f2f2f2; margin: 0; }
 
     #loginBox { text-align: center; margin-top: 100px; }
 
@@ -28,6 +27,7 @@
       padding: 10px;
       margin: 10px;
       border-radius: 10px;
+      cursor: pointer;
     }
 
     .fab {
@@ -46,7 +46,7 @@
 
 <body>
 
-<!-- 🔐 LOGIN (UPDATED) -->
+<!-- 🔐 LOGIN -->
 <div id="loginBox">
   <h2>Login</h2>
   <input type="text" id="username" placeholder="Enter Username">
@@ -54,7 +54,7 @@
   <button onclick="login()">Login</button>
 </div>
 
-<!-- 📱 APP (same as before) -->
+<!-- 📱 APP -->
 <div id="app">
   <h2>My Confessions</h2>
   <div id="data"></div>
@@ -62,7 +62,6 @@
 </div>
 
 <script>
-  // 🔥 TERA FIREBASE CONFIG (same as diya)
   const firebaseConfig = {
     apiKey: "AIzaSyAMxvOE99yPPhttJ5686_fpAP8Y5k2QUaA",
     authDomain: "failstory-a1191.firebaseapp.com",
@@ -76,7 +75,7 @@
   firebase.initializeApp(firebaseConfig);
   const db = firebase.database();
 
-  // 🔐 LOGIN SYSTEM (ONLY THIS PART CHANGED)
+  // 🔐 LOGIN
   function login() {
     const user = document.getElementById("username").value;
     const pass = document.getElementById("password").value;
@@ -90,9 +89,9 @@
     }
   }
 
-  // ➕ ADD CONFESSION (same)
+  // ➕ ADD CONFESSION (popup style)
   function addConfession() {
-    let text = prompt("Enter your confession:");
+    let text = prompt("Write your confession:");
     if (text) {
       db.ref("confessions").push({
         text: text,
@@ -101,25 +100,35 @@
     }
   }
 
-  // 📖 LOAD DATA (same)
+  // 📖 LOAD DATA (preview + click full)
   function loadData() {
     db.ref("confessions").on("value", (snap) => {
       let html = "";
+
       snap.forEach((data) => {
         let val = data.val();
+
+        let preview = val.text.substring(0, 40) + "...";
+
         html += `
-          <div class="card">
-            <p>${val.text}</p>
+          <div class="card" onclick="viewFull('${val.text}')">
+            <p>${preview}</p>
             <small>${val.time}</small><br>
-            <button onclick="deleteData('${data.key}')">Delete</button>
+            <button onclick="deleteData('${data.key}'); event.stopPropagation();">Delete</button>
           </div>
         `;
       });
+
       document.getElementById("data").innerHTML = html;
     });
   }
 
-  // 🗑️ DELETE (same)
+  // 👁️ VIEW FULL CONFESSION
+  function viewFull(text) {
+    alert(text);
+  }
+
+  // 🗑️ DELETE
   function deleteData(id) {
     db.ref("confessions/" + id).remove();
   }
