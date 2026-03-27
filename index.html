@@ -1,244 +1,64 @@
 <!DOCTYPE html>
-<html>
+<html lang="en">
 <head>
-  <title>My Confession</title>
-
-  <style>
-    body{
-      margin:0;
-      font-family: Arial;
-      background:#0f172a;
-      color:white;
-    }
-
-    /* 🔐 LOGIN PAGE */
-    #login{
-      display:flex;
-      justify-content:center;
-      align-items:center;
-      height:100vh;
-    }
-
-    .login-box{
-      background:#111827;
-      padding:30px;
-      border-radius:20px;
-      width:300px;
-      text-align:center;
-      box-shadow:0 0 20px #22c55e;
-      animation: glow 2s infinite alternate;
-    }
-
-    @keyframes glow{
-      from{ box-shadow:0 0 10px #22c55e; }
-      to{ box-shadow:0 0 30px #22c55e; }
-    }
-
-    .google{
-      background:#3b82f6;
-      border:none;
-      padding:10px;
-      border-radius:10px;
-      width:100%;
-      color:white;
-      cursor:pointer;
-    }
-
-    /* 📱 APP UI */
-    #app{ display:none; }
-
-    .container{
-      max-width:500px;
-      margin:auto;
-      padding:15px;
-    }
-
-    h2{text-align:center;}
-
-    .card{
-      background:#1a1a1a;
-      padding:12px;
-      border-radius:15px;
-      margin-top:15px;
-      cursor:pointer;
-      transition:0.3s;
-    }
-
-    .card:hover{ background:#222; }
-
-    .full{
-      display:none;
-      margin-top:10px;
-    }
-
-    .time{
-      font-size:12px;
-      color:#aaa;
-    }
-
-    .fab{
-      position:fixed;
-      bottom:20px;
-      right:20px;
-      background:#22c55e;
-      width:55px;
-      height:55px;
-      border-radius:50%;
-      font-size:30px;
-      display:flex;
-      justify-content:center;
-      align-items:center;
-      cursor:pointer;
-    }
-
-    #popup{
-      display:none;
-      position:fixed;
-      bottom:0;
-      width:100%;
-      background:#000;
-      padding:15px;
-    }
-
-    textarea{
-      width:100%;
-      padding:10px;
-      border-radius:10px;
-      border:none;
-      background:#111;
-      color:white;
-    }
-
-    button{
-      width:100%;
-      padding:10px;
-      margin-top:10px;
-      border:none;
-      border-radius:10px;
-      background:#22c55e;
-      color:white;
-    }
-
-  </style>
+  <meta charset="UTF-8">
+  <title>Google Login Firebase</title>
 </head>
-
 <body>
 
-<!-- 🔐 LOGIN -->
-<div id="login">
-  <div class="login-box">
-    <h2>Welcome Back</h2>
-    <button class="google" onclick="googleLogin()">Login with Google</button>
-  </div>
-</div>
+  <h2>Firebase Google Login</h2>
+  <button onclick="login()">Login with Google</button>
+  <button onclick="logout()">Logout</button>
 
-<!-- 📱 APP -->
-<div id="app">
-  <div class="container">
-    <h2>My Confessions</h2>
-    <div id="data"></div>
-  </div>
+  <p id="user"></p>
 
-  <div class="fab" onclick="openPopup()">+</div>
+  <script type="module">
+    // Import Firebase
+    import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js";
+    import { 
+      getAuth, 
+      GoogleAuthProvider, 
+      signInWithPopup,
+      signOut 
+    } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js";
 
-  <div id="popup">
-    <textarea id="text" placeholder="Write your thoughts..."></textarea>
-    <button onclick="saveData()">Save</button>
-  </div>
-</div>
+    // Firebase config (tumhara)
+    const firebaseConfig = {
+      apiKey: "AIzaSyAMxvOE99yPPhttJ5686_fpAP8Y5k2QUaA",
+      authDomain: "failstory-a1191.firebaseapp.com",
+      databaseURL: "https://failstory-a1191-default-rtdb.firebaseio.com",
+      projectId: "failstory-a1191",
+      storageBucket: "failstory-a1191.firebasestorage.app",
+      messagingSenderId: "786523661240",
+      appId: "1:786523661240:web:ec191e79ada401f713a54d"
+    };
 
-<!-- Firebase -->
-<script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-app.js"></script>
-<script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-auth.js"></script>
-<script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-database.js"></script>
+    // Initialize Firebase
+    const app = initializeApp(firebaseConfig);
+    const auth = getAuth(app);
+    const provider = new GoogleAuthProvider();
 
-<script>
-const firebaseConfig = {
-  apiKey: "1:786523661240:web:ec191e79ada401f713a54d",
-  authDomain: "failstory-2577f.firebaseapp.com",
-  databaseURL: "https://failstory-a1191-default-rtdb.firebaseio.com/",
-  projectId: "failstory-2577f"
-};
+    // LOGIN FUNCTION
+    window.login = function () {
+      signInWithPopup(auth, provider)
+        .then((result) => {
+          const user = result.user;
+          document.getElementById("user").innerText =
+            "Logged in: " + user.displayName;
+        })
+        .catch((error) => {
+          console.error(error);
+          alert(error.message);
+        });
+    };
 
-firebase.initializeApp(firebaseConfig);
-
-const auth = firebase.auth();
-const db = firebase.database();
-
-/* 🔐 GOOGLE LOGIN */
-function googleLogin(){
-  let provider = new firebase.auth.GoogleAuthProvider();
-
-  auth.signInWithPopup(provider)
-  .then(()=>{
-    document.getElementById("login").style.display="none";
-    document.getElementById("app").style.display="block";
-    loadData();
-  })
-  .catch((e)=>{
-    alert("Login error: "+e.message);
-  });
-}
-
-/* ➕ POPUP */
-function openPopup(){
-  document.getElementById("popup").style.display="block";
-}
-
-/* 💾 SAVE */
-function saveData(){
-  let text = document.getElementById("text").value;
-  let time = new Date().toLocaleString();
-
-  db.ref("confessions").push({text,time});
-  location.reload();
-}
-
-/* 📂 TOGGLE */
-function toggle(id){
-  let el = document.getElementById(id);
-  el.style.display = el.style.display=="none"?"block":"none";
-}
-
-/* 🗑️ DELETE */
-function deleteData(id){
-  db.ref("confessions/"+id).remove();
-}
-
-/* 📦 LOAD */
-function loadData(){
-  db.ref("confessions").on("value",snap=>{
-    let data = snap.val();
-    let out="";
-
-    for(let k in data){
-      let short = data[k].text.substring(0,40);
-
-      out += `
-      <div class="card" onclick="toggle('${k}')">
-        ${short}...
-        <div class="time">${data[k].time}</div>
-
-        <div class="full" id="${k}">
-          <p>${data[k].text}</p>
-          <button onclick="deleteData('${k}')">Delete</button>
-        </div>
-      </div>`;
-    }
-
-    document.getElementById("data").innerHTML=out;
-  });
-}
-
-/* 🔥 AUTO LOGIN */
-auth.onAuthStateChanged(user=>{
-  if(user){
-    document.getElementById("login").style.display="none";
-    document.getElementById("app").style.display="block";
-    loadData();
-  }
-});
-</script>
+    // LOGOUT FUNCTION
+    window.logout = function () {
+      signOut(auth).then(() => {
+        document.getElementById("user").innerText = "Logged out";
+      });
+    };
+  </script>
 
 </body>
 </html>
