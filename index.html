@@ -1,64 +1,129 @@
 <!DOCTYPE html>
-<html lang="en">
+<html>
 <head>
-  <meta charset="UTF-8">
-  <title>Google Login Firebase</title>
+  <title>Confession App</title>
+
+  <!-- Firebase -->
+  <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-app.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-database.js"></script>
+
+  <style>
+    body { font-family: Arial; margin: 0; background: #f2f2f2; }
+
+    #loginBox { text-align: center; margin-top: 100px; }
+
+    input {
+      display: block;
+      margin: 10px auto;
+      padding: 10px;
+      width: 200px;
+    }
+
+    button { padding: 10px 20px; cursor: pointer; }
+
+    #app { display: none; padding: 20px; }
+
+    .card {
+      background: white;
+      padding: 10px;
+      margin: 10px;
+      border-radius: 10px;
+    }
+
+    .fab {
+      position: fixed;
+      bottom: 20px;
+      right: 20px;
+      background: blue;
+      color: white;
+      font-size: 25px;
+      border-radius: 50%;
+      width: 50px;
+      height: 50px;
+    }
+  </style>
 </head>
+
 <body>
 
-  <h2>Firebase Google Login</h2>
-  <button onclick="login()">Login with Google</button>
-  <button onclick="logout()">Logout</button>
+<!-- 🔐 LOGIN (UPDATED) -->
+<div id="loginBox">
+  <h2>Login</h2>
+  <input type="text" id="username" placeholder="Enter Username">
+  <input type="password" id="password" placeholder="Enter Password">
+  <button onclick="login()">Login</button>
+</div>
 
-  <p id="user"></p>
+<!-- 📱 APP (same as before) -->
+<div id="app">
+  <h2>My Confessions</h2>
+  <div id="data"></div>
+  <button class="fab" onclick="addConfession()">+</button>
+</div>
 
-  <script type="module">
-    // Import Firebase
-    import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js";
-    import { 
-      getAuth, 
-      GoogleAuthProvider, 
-      signInWithPopup,
-      signOut 
-    } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js";
+<script>
+  // 🔥 TERA FIREBASE CONFIG (same as diya)
+  const firebaseConfig = {
+    apiKey: "AIzaSyAMxvOE99yPPhttJ5686_fpAP8Y5k2QUaA",
+    authDomain: "failstory-a1191.firebaseapp.com",
+    databaseURL: "https://failstory-a1191-default-rtdb.firebaseio.com",
+    projectId: "failstory-a1191",
+    storageBucket: "failstory-a1191.firebasestorage.app",
+    messagingSenderId: "786523661240",
+    appId: "1:786523661240:web:ec191e79ada401f713a54d"
+  };
 
-    // Firebase config (tumhara)
-    const firebaseConfig = {
-      apiKey: "AIzaSyAMxvOE99yPPhttJ5686_fpAP8Y5k2QUaA",
-      authDomain: "failstory-a1191.firebaseapp.com",
-      databaseURL: "https://failstory-a1191-default-rtdb.firebaseio.com",
-      projectId: "failstory-a1191",
-      storageBucket: "failstory-a1191.firebasestorage.app",
-      messagingSenderId: "786523661240",
-      appId: "1:786523661240:web:ec191e79ada401f713a54d"
-    };
+  firebase.initializeApp(firebaseConfig);
+  const db = firebase.database();
 
-    // Initialize Firebase
-    const app = initializeApp(firebaseConfig);
-    const auth = getAuth(app);
-    const provider = new GoogleAuthProvider();
+  // 🔐 LOGIN SYSTEM (ONLY THIS PART CHANGED)
+  function login() {
+    const user = document.getElementById("username").value;
+    const pass = document.getElementById("password").value;
 
-    // LOGIN FUNCTION
-    window.login = function () {
-      signInWithPopup(auth, provider)
-        .then((result) => {
-          const user = result.user;
-          document.getElementById("user").innerText =
-            "Logged in: " + user.displayName;
-        })
-        .catch((error) => {
-          console.error(error);
-          alert(error.message);
-        });
-    };
+    if (user === "arshit15" && pass === "khushi2310") {
+      document.getElementById("loginBox").style.display = "none";
+      document.getElementById("app").style.display = "block";
+      loadData();
+    } else {
+      alert("Wrong username or password!");
+    }
+  }
 
-    // LOGOUT FUNCTION
-    window.logout = function () {
-      signOut(auth).then(() => {
-        document.getElementById("user").innerText = "Logged out";
+  // ➕ ADD CONFESSION (same)
+  function addConfession() {
+    let text = prompt("Enter your confession:");
+    if (text) {
+      db.ref("confessions").push({
+        text: text,
+        time: new Date().toLocaleString()
       });
-    };
-  </script>
+    }
+  }
+
+  // 📖 LOAD DATA (same)
+  function loadData() {
+    db.ref("confessions").on("value", (snap) => {
+      let html = "";
+      snap.forEach((data) => {
+        let val = data.val();
+        html += `
+          <div class="card">
+            <p>${val.text}</p>
+            <small>${val.time}</small><br>
+            <button onclick="deleteData('${data.key}')">Delete</button>
+          </div>
+        `;
+      });
+      document.getElementById("data").innerHTML = html;
+    });
+  }
+
+  // 🗑️ DELETE (same)
+  function deleteData(id) {
+    db.ref("confessions/" + id).remove();
+  }
+</script>
 
 </body>
 </html>
